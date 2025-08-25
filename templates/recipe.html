@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.title }} - RecipeShare{% endblock %}
+{% block content %}
+  <article class="recipe-detail card">
+    <header class="recipe-header">
+      <h1>{{ recipe.title }}</h1>
+      <div class="meta">By <a href="{{ url_for('profile', username=recipe['author_name']) }}">{{ recipe['author_name'] }}</a> · {{ recipe.created_at.split('T')[0] }}</div>
+    </header>
+
+    <div class="recipe-media">
+      {% if image_data %}
+        <img src="{{ image_data }}" alt="Recipe image" />
+      {% else %}
+        <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="placeholder" />
+      {% endif %}
+    </div>
+
+    <section class="card-body">
+      <h3>Description</h3>
+      <p>{{ recipe.description or 'No description provided.' }}</p>
+
+      <h3>Ingredients</h3>
+      <ul>
+        {% for line in (recipe.ingredients or '').splitlines() if line.strip() %}
+          <li>{{ line }}</li>
+        {% else %}
+          <li class="muted">No ingredients listed.</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Instructions</h3>
+      <pre class="instructions">{{ recipe.instructions or 'No instructions provided.' }}</pre>
+    </section>
+
+    <footer class="card-actions">
+      {% if user and user['id'] == recipe['user_id'] %}
+        <a href="{{ url_for('edit_recipe', recipe_id=recipe['id']) }}" class="btn">Edit</a>
+        <form method="post" action="{{ url_for('delete_recipe', recipe_id=recipe['id']) }}" style="display:inline" onsubmit="return confirm('Delete recipe?');">
+          <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+      {% endif %}
+    </footer>
+  </article>
+
+  <section class="comments card">
+    <h2>Comments</h2>
+    {% for c in comments %}
+      <div class="comment">
+        <div class="comment-meta"><strong>{{ c['author_name'] }}</strong> · {{ c['created_at'].split('T')[0] }}</div>
+        <div class="comment-body">{{ c['body'] }}</div>
+      </div>
+    {% else %}
+      <p class="muted">Be the first to comment.</p>
+    {% endfor %}
+
+    {% if user %}
+      <form method="post" class="comment-form">
+        <label>Add a comment
+          <textarea name="comment" rows="3" required placeholder="Write your comment..."></textarea>
+        </label>
+        <button class="btn-primary">Post comment</button>
+      </form>
+    {% else %}
+      <p><a href="{{ url_for('login') }}">Log in</a> to leave a comment.</p>
+    {% endif %}
+  </section>
+{% endblock %}

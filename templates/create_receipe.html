@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Create Recipe - RecipeShare{% endblock %}
+{% block content %}
+  <h1>Create a recipe</h1>
+
+  <!-- Enctype required for file uploads -->
+  <form method="post" enctype="multipart/form-data" class="card form-card" id="create-form">
+    <label>Title
+      <input name="title" required maxlength="200" />
+    </label>
+
+    <label>Short description
+      <textarea name="description" rows="3" placeholder="What is this dish about?"></textarea>
+    </label>
+
+    <label>Ingredients (one per line)
+      <textarea name="ingredients" rows="5" placeholder="e.g. 2 eggs\n1 cup flour"></textarea>
+    </label>
+
+    <label>Instructions
+      <textarea name="instructions" rows="8" placeholder="Step 1: ..."></textarea>
+    </label>
+
+    <label>Image (optional)
+      <input type="file" name="image" id="image-input" accept="image/*" />
+      <div id="image-preview" class="image-preview"></div>
+    </label>
+
+    <button type="submit" class="btn-primary">Publish recipe</button>
+  </form>
+{% endblock %}

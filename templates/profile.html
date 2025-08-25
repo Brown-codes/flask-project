@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ owner.username }}'s profile{% endblock %}
+{% block content %}
+  <h1>{{ owner.username }}</h1>
+  <p class="muted">Member since {{ owner.created_at.split('T')[0] }}</p>
+
+  <h2>Recipes by {{ owner.username }}</h2>
+  <div class="grid small-grid">
+    {% for r in recipes %}
+      <article class="card small">
+        <a href="{{ url_for('recipe_detail', recipe_id=r['id']) }}">
+          <div class="card-body">
+            <h4>{{ r['title'] }}</h4>
+            <p class="muted">{{ r['description'][:120] }}</p>
+          </div>
+        </a>
+      </article>
+    {% else %}
+      <p class="muted">No recipes yet.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

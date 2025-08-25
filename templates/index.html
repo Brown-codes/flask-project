@@ -1,0 +1,31 @@
+<!-- templates/index.html
+  Home page: shows recipe cards.
+-->
+{% extends "base.html" %}
+{% block title %}Home - RecipeShare{% endblock %}
+{% block content %}
+  <h1>Latest Recipes</h1>
+
+  <div class="grid">
+    {% for r in recipes %}
+      <article class="card">
+        <a class="card-link" href="{{ url_for('recipe_detail', recipe_id=r['id']) }}">
+          <div class="card-media">
+            {% if r.image_data %}
+              <img src="{{ r.image_data }}" alt="Recipe image" />
+            {% else %}
+              <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="placeholder" />
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <h3>{{ r.title }}</h3>
+            <p class="muted">{{ r.description }}</p>
+            <div class="meta">Posted: {{ r.created_at.split('T')[0] }}</div>
+          </div>
+        </a>
+      </article>
+    {% else %}
+      <p>No recipes yet. Be the first to <a href="{{ url_for('create_recipe') }}">create one</a>!</p>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Edit - {{ recipe.title }}{% endblock %}
+{% block content %}
+  <h1>Edit recipe</h1>
+
+  <form method="post" enctype="multipart/form-data" class="card form-card" id="edit-form">
+    <label>Title
+      <input name="title" required maxlength="200" value="{{ recipe.title }}" />
+    </label>
+
+    <label>Short description
+      <textarea name="description" rows="3">{{ recipe.description }}</textarea>
+    </label>
+
+    <label>Ingredients (one per line)
+      <textarea name="ingredients" rows="5">{{ recipe.ingredients }}</textarea>
+    </label>
+
+    <label>Instructions
+      <textarea name="instructions" rows="8">{{ recipe.instructions }}</textarea>
+    </label>
+
+    <label>Current image
+      {% if image_data %}
+        <div class="image-preview">
+          <img src="{{ image_data }}" alt="current" />
+        </div>
+        <label><input type="checkbox" name="replace_image" /> Remove current image</label>
+      {% else %}
+        <p class="muted">No current image.</p>
+      {% endif %}
+    </label>
+
+    <label>Replace with new image (optional)
+      <input type="file" name="image" id="image-input" accept="image/*" />
+      <div id="image-preview" class="image-preview"></div>
+    </label>
+
+    <button type="submit" class="btn-primary">Save changes</button>
+  </form>
+{% endblock %}

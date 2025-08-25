@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Register - RecipeShare{% endblock %}
+{% block content %}
+  <h1>Create account</h1>
+  <form method="post" class="card form-card">
+    <!-- POST to same URL -->
+    <label>Username
+      <input name="username" required minlength="3" maxlength="30" placeholder="choose a username" />
+    </label>
+    <label>Password
+      <input name="password" type="password" required minlength="6" placeholder="choose a password" />
+    </label>
+    <button type="submit" class="btn-primary">Register</button>
+    <p class="muted">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+  </form>
+{% endblock %}
