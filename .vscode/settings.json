@@ -1,0 +1,6 @@
+{
+  "python.analysis.typeCheckingMode": "standard",
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

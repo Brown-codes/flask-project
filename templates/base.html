@@ -1,66 +1,147 @@
-<!-- templates/base.html
-  Base template that all pages extend. Contains header/nav and links to static CSS/JS.
--->
-<!doctype html>
+<!-- templates/base.html -->
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{% block title %}RecipeShare{% endblock %}</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}RecipeShare{% endblock %}</title>
 
-  <!-- Material icons (CDN - client-side only) -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Material icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+          <a
+            class="navbar-brand d-flex align-items-center"
+            href="{{ url_for('index') }}"
+          >
+            <span class="material-icons me-2">restaurant_menu</span>
+            RecipeShare
+          </a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
 
-  <!-- Small inline styles for flash placement if you want -->
-  <style>
-    /* tiny helper for flash messages area */
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="{{ url_for('index') }}" class="brand">
-        <span class="material-icons">restaurant_menu</span> RecipeShare
-      </a>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a
+                  class="nav-link d-flex align-items-center"
+                  href="{{ url_for('index') }}"
+                >
+                  <span class="material-icons me-1">home</span> Home
+                </a>
+              </li>
 
-      <nav class="nav">
-        <a href="{{ url_for('index') }}">Home</a>
-        {% if user %}
-          <a href="{{ url_for('create_recipe') }}">Create</a>
-          <a href="{{ url_for('profile', username=user['username']) }}">{{ user['username'] }}</a>
-          <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-          <a href="{{ url_for('login') }}">Login</a>
-          <a href="{{ url_for('register') }}">Register</a>
-        {% endif %}
-      </nav>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-area">
-          {% for category, msg in messages %}
-            <div class="flash flash-{{ category }}">{{ msg }}</div>
-          {% endfor %}
+              {% if current_user.is_authenticated %}
+              <li class="nav-item">
+                <a
+                  class="nav-link d-flex align-items-center"
+                  href="{{ url_for('recipes.create_recipe') }}"
+                >
+                  <span class="material-icons me-1">create</span> Create
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link fw-bold d-flex align-items-center"
+                  href="{{ url_for('profile', username=current_user.username) }}"
+                >
+                  <span class="material-icons me-1">person</span> {{
+                  current_user.username }}
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link d-flex align-items-center"
+                  href="{{ url_for('auth.logout') }}"
+                >
+                  <span class="material-icons me-1">logout</span> Logout
+                </a>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                <a
+                  class="nav-link d-flex align-items-center"
+                  href="{{ url_for('auth.login') }}"
+                >
+                  <span class="material-icons me-1">login</span> Login
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link d-flex align-items-center"
+                  href="{{ url_for('auth.register') }}"
+                >
+                  <span class="material-icons me-1">app_registration</span>
+                  Register
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
         </div>
-      {% endif %}
-    {% endwith %}
+      </nav>
+    </header>
 
-    {% block content %}{% endblock %}
-  </main>
+    <!-- Main content -->
+    <main class="container my-4 flex-grow-1">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="mb-3">
+        {% for category, msg in messages %}
+        <div
+          class="alert alert-{{ 'success' if category=='success' else 'danger' }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ msg }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <small>&copy; {{ (2|int) and (2020) }} RecipeShare · Built with Flask</small>
-    </div>
-  </footer>
+    <!-- Footer -->
+    <footer class="bg-light py-3 mt-auto border-top">
+      <div class="container text-center">
+        <small class="text-muted">
+          &copy; {{ (2|int) and (2020) }} RecipeShare · Built by Group 10. Built with Flask
+        </small>
+      </div>
+    </footer>
 
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

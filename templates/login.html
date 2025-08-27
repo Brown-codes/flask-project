@@ -1,15 +1,51 @@
-{% extends "base.html" %}
-{% block title %}Login - RecipeShare{% endblock %}
-{% block content %}
-  <h1>Log in</h1>
-  <form method="post" class="card form-card">
-    <label>Username
-      <input name="username" required placeholder="your username" />
-    </label>
-    <label>Password
-      <input name="password" type="password" required placeholder="your password" />
-    </label>
-    <button type="submit" class="btn-primary">Login</button>
-    <p class="muted">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
-  </form>
+{% extends "base.html" %} {% block title %}Login - RecipeShare{% endblock %} {%
+block content %}
+<div class="card mx-auto" style="max-width: 400px">
+  <div class="card-body">
+    <h3 class="card-title mb-3 text-center">Log in</h3>
+    <form method="post">
+      <!-- Username -->
+      <div class="mb-3 input-group">
+        <span class="input-group-text">
+          <span class="material-icons">person</span>
+        </span>
+        <input
+          name="username"
+          type="text"
+          class="form-control"
+          placeholder="Username"
+          required
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3 input-group">
+        <span class="input-group-text">
+          <span class="material-icons">lock</span>
+        </span>
+        <input
+          name="password"
+          type="password"
+          class="form-control"
+          placeholder="Password"
+          required
+        />
+      </div>
+
+      <!-- Preserve `next` parameter -->
+      {% if request.args.get('next') %}
+      <input type="hidden" name="next" value="{{ request.args.get('next') }}" />
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+
+      <p class="text-center mt-3">
+        Don't have an account?
+        <a href="{{ url_for('auth.register', next=request.args.get('next')) }}"
+          >Register</a
+        >
+      </p>
+    </form>
+  </div>
+</div>
 {% endblock %}

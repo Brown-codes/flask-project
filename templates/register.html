@@ -1,16 +1,51 @@
-{% extends "base.html" %}
-{% block title %}Register - RecipeShare{% endblock %}
+{% extends "base.html" %} {% block title %}Register - RecipeShare{% endblock %}
 {% block content %}
-  <h1>Create account</h1>
-  <form method="post" class="card form-card">
-    <!-- POST to same URL -->
-    <label>Username
-      <input name="username" required minlength="3" maxlength="30" placeholder="choose a username" />
-    </label>
-    <label>Password
-      <input name="password" type="password" required minlength="6" placeholder="choose a password" />
-    </label>
-    <button type="submit" class="btn-primary">Register</button>
-    <p class="muted">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
-  </form>
+<div class="card mx-auto" style="max-width: 400px">
+  <div class="card-body">
+    <h3 class="card-title mb-3 text-center">Create Account</h3>
+    <form method="post">
+      <!-- Username -->
+      <div class="mb-3 input-group">
+        <span class="input-group-text">
+          <span class="material-icons">person</span>
+        </span>
+        <input
+          name="username"
+          type="text"
+          class="form-control"
+          placeholder="Choose a username"
+          required
+          minlength="3"
+          maxlength="30"
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3 input-group">
+        <span class="input-group-text">
+          <span class="material-icons">lock</span>
+        </span>
+        <input
+          name="password"
+          type="password"
+          class="form-control"
+          placeholder="Choose a password"
+          required
+          minlength="6"
+        />
+      </div>
+
+      {% if next %}
+      <input type="hidden" name="next" value="{{ next }}" />
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary w-100">Register</button>
+
+      <p class="text-center mt-3">
+        Already registered?
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+      </p>
+    </form>
+  </div>
+</div>
 {% endblock %}

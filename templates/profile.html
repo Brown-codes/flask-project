@@ -1,22 +1,55 @@
-{% extends "base.html" %}
-{% block title %}{{ owner.username }}'s profile{% endblock %}
-{% block content %}
-  <h1>{{ owner.username }}</h1>
-  <p class="muted">Member since {{ owner.created_at.split('T')[0] }}</p>
+{% extends "base.html" %} {% block title %}{{ owner.username }}'s profile -
+RecipeShare{% endblock %} {% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center mb-4">
+    <i class="material-icons me-2" style="font-size: 36px">person</i>
+    <div>
+      <h1 class="h3 mb-0">{{ owner.username }}</h1>
+      <small class="text-muted"
+        >Member since {{ owner.created_at.split('T')[0] }}</small
+      >
+    </div>
+  </div>
 
-  <h2>Recipes by {{ owner.username }}</h2>
-  <div class="grid small-grid">
+  <h2 class="h5 mb-3">Recipes by {{ owner.username }}</h2>
+  <div class="row g-4">
     {% for r in recipes %}
-      <article class="card small">
-        <a href="{{ url_for('recipe_detail', recipe_id=r['id']) }}">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="card h-100 shadow-sm">
+        <a
+          href="{{ url_for('recipes.recipe_detail', recipe_id=r['id']) }}"
+          class="text-decoration-none text-dark"
+        >
+          {% if r.image_data %}
+          <img
+            src="{{ url_for('recipes.recipe_image', recipe_id=r['id']) }}"
+            class="card-img-top"
+            alt="Recipe image"
+            style="object-fit: cover; height: 180px"
+          />
+          {% else %}
+          <img
+            src="{{ url_for('static', filename='images/placeholder.jpg') }}"
+            class="card-img-top"
+            alt="Placeholder"
+            style="object-fit: cover; height: 180px"
+          />
+          {% endif %}
           <div class="card-body">
-            <h4>{{ r['title'] }}</h4>
-            <p class="muted">{{ r['description'][:120] }}</p>
+            <h5 class="card-title">{{ r.title }}</h5>
+            <p class="card-text text-muted small mb-0">
+              {{ r.description[:120] }}{% if r.description|length > 120 %}...{%
+              endif %}
+            </p>
           </div>
         </a>
-      </article>
+      </div>
+    </div>
     {% else %}
-      <p class="muted">No recipes yet.</p>
+    <div class="col-12">
+      <p class="text-muted">No recipes yet.</p>
+    </div>
     {% endfor %}
   </div>
+</div>
 {% endblock %}

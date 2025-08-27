@@ -1,0 +1,193 @@
+{% extends "base.html" %} {% block title %}{{ recipe.title }} - RecipeShare{%
+endblock %} {% block content %}
+<article class="card mb-4 shadow-sm">
+  <!-- Header -->
+  <header class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="h3 mb-1">{{ recipe.title }}</h1>
+      <div class="text-muted small">
+        <i class="material-icons align-middle" style="font-size: 16px"
+          >person</i
+        >
+        By
+        <a href="{{ url_for('profile', username=recipe['author_name']) }}">
+          {{ recipe['author_name'] }}
+        </a>
+        &nbsp;&bull;&nbsp;
+        <i class="material-icons align-middle" style="font-size: 16px"
+          >schedule</i
+        >
+        {{ recipe.created_at.split('T')[0] }}
+      </div>
+    </div>
+
+    <!-- Show Edit/Delete only for author -->
+    {% if user and user['id']|int == recipe['created_by']|int %}
+    <div>
+      <a
+        href="{{ url_for('recipes.edit_recipe', recipe_id=recipe['id']) }}"
+        class="btn btn-sm btn-outline-primary me-2"
+      >
+        <i class="material-icons align-middle">edit</i> Edit
+      </a>
+      <form
+        method="post"
+        action="{{ url_for('recipes.delete_recipe', recipe_id=recipe['id']) }}"
+        class="d-inline"
+        onsubmit="return confirm('Delete recipe?');"
+      >
+        <button class="btn btn-sm btn-outline-danger" type="submit">
+          <i class="material-icons align-middle">delete</i> Delete
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- Image -->
+  {% if recipe.image_data %}
+  <img
+    src="{{ url_for('recipes.recipe_image', recipe_id=recipe['id']) }}"
+    class="card-img-top"
+    alt="Recipe image"
+    style="object-fit: cover; max-height: 400px"
+  />
+  {% else %}
+  <img
+    src="{{ url_for('static', filename='images/placeholder.jpg') }}"
+    class="card-img-top"
+    alt="Placeholder"
+    style="object-fit: cover; max-height: 400px"
+  />
+  {% endif %}
+
+  <!-- Body -->
+  <section class="card-body">
+    <h4>Description</h4>
+    <p>{{ recipe.description or 'No description provided.' }}</p>
+
+    <h4>Ingredients</h4>
+    <ul>
+      {% for line in (recipe.ingredients or '').splitlines() if line.strip() %}
+      <li>{{ line }}</li>
+      {% else %}
+      <li class="text-muted">No ingredients listed.</li>
+      {% endfor %}
+    </ul>
+
+    <h4>Instructions</h4>
+    <pre class="border rounded p-3 bg-light">
+{{ recipe.instructions or 'No instructions provided.' }}</pre
+    >
+
+    <!-- Share Buttons -->
+    <div class="mt-4">
+      <h5>
+        <i class="material-icons align-middle">share</i> Share this recipe
+      </h5>
+      <button class="btn btn-outline-primary me-2" id="nativeShareBtn">
+        <i class="material-icons align-middle">ios_share</i> Share
+      </button>
+      <button class="btn btn-outline-secondary me-2" id="copyLinkBtn">
+        <i class="material-icons align-middle">link</i> Copy Link
+      </button>
+      <a
+        href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text={{ recipe.title|urlencode }}"
+        target="_blank"
+        class="btn btn-outline-info me-2"
+      >
+        <i class="material-icons align-middle">chat</i> Twitter
+      </a>
+      <a
+        href="https://api.whatsapp.com/send?text={{ recipe.title|urlencode }}%20{{ request.url|urlencode }}"
+        target="_blank"
+        class="btn btn-outline-success me-2"
+      >
+        <i class="material-icons align-middle">whatsapp</i> WhatsApp
+      </a>
+    </div>
+  </section>
+</article>
+
+<!-- Comments Section -->
+<section class="card shadow-sm mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="material-icons align-middle">comment</i> Comments
+    </h5>
+  </div>
+  <div class="card-body">
+    {% for c in comments %}
+    <div class="mb-3">
+      <div class="text-muted small mb-1">
+        <i class="material-icons align-middle" style="font-size: 16px"
+          >person</i
+        >
+        <strong>
+          <a href="{{ url_for('profile', username=c['username']) }}">
+            {{ c['author_name'] }}
+          </a>
+        </strong>
+        &nbsp;&bull;&nbsp;
+        <i class="material-icons align-middle" style="font-size: 16px"
+          >schedule</i
+        >
+        {{ c['created_at'].split('T')[0] }}
+      </div>
+      <div>{{ c['content'] }}</div>
+    </div>
+    {% else %}
+    <p class="text-muted">Be the first to comment.</p>
+    {% endfor %} {% if user %}
+    <form method="post" class="mt-3">
+      <label class="form-label">Add a comment</label>
+      <textarea
+        name="comment"
+        class="form-control mb-2"
+        rows="3"
+        placeholder="Write your comment..."
+        required
+      ></textarea>
+      <button class="btn btn-primary" type="submit">
+        <i class="material-icons align-middle">send</i> Post comment
+      </button>
+    </form>
+    {% else %}
+    <p><a href="{{ url_for('auth.login') }}">Log in</a> to leave a comment.</p>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Inline JavaScript for Share -->
+<script>
+  document
+    .getElementById("nativeShareBtn")
+    .addEventListener("click", async () => {
+      const shareData = {
+        title: "{{ recipe.title }}",
+        text: "Check out this recipe on RecipeShare!",
+        url: "{{ request.url }}",
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (err) {
+          console.error("Error sharing:", err);
+        }
+      } else {
+        alert(
+          "Your browser does not support Web Share. Please use the Copy Link button."
+        );
+      }
+    });
+
+  document.getElementById("copyLinkBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText("{{ request.url }}");
+      alert("Link copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  });
+</script>
+{% endblock %}

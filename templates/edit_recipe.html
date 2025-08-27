@@ -1,41 +1,82 @@
-{% extends "base.html" %}
-{% block title %}Edit - {{ recipe.title }}{% endblock %}
-{% block content %}
-  <h1>Edit recipe</h1>
+{% extends "base.html" %} {% block title %}Edit - {{ recipe.title }}{% endblock
+%} {% block content %}
+<div class="container my-4">
+  <h1 class="mb-4">
+    <i class="material-icons align-middle">edit</i> Edit Recipe
+  </h1>
 
-  <form method="post" enctype="multipart/form-data" class="card form-card" id="edit-form">
-    <label>Title
-      <input name="title" required maxlength="200" value="{{ recipe.title }}" />
-    </label>
+  <form
+    method="post"
+    enctype="multipart/form-data"
+    class="card p-4 shadow-sm"
+    id="edit-form"
+  >
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input
+        name="title"
+        class="form-control"
+        required
+        maxlength="200"
+        value="{{ recipe.title }}"
+      />
+    </div>
 
-    <label>Short description
-      <textarea name="description" rows="3">{{ recipe.description }}</textarea>
-    </label>
+    <div class="mb-3">
+      <label class="form-label">Short description</label>
+      <textarea name="description" rows="3" class="form-control">
+{{ recipe.description }}</textarea
+      >
+    </div>
 
-    <label>Ingredients (one per line)
-      <textarea name="ingredients" rows="5">{{ recipe.ingredients }}</textarea>
-    </label>
+    <div class="mb-3">
+      <label class="form-label">Ingredients (one per line)</label>
+      <textarea name="ingredients" rows="5" class="form-control">
+{{ recipe.ingredients }}</textarea
+      >
+    </div>
 
-    <label>Instructions
-      <textarea name="instructions" rows="8">{{ recipe.instructions }}</textarea>
-    </label>
+    <div class="mb-3">
+      <label class="form-label">Instructions</label>
+      <textarea name="instructions" rows="8" class="form-control">
+{{ recipe.instructions }}</textarea
+      >
+    </div>
 
-    <label>Current image
+    <div class="mb-3">
+      <label class="form-label">Current image</label>
       {% if image_data %}
-        <div class="image-preview">
-          <img src="{{ image_data }}" alt="current" />
-        </div>
-        <label><input type="checkbox" name="replace_image" /> Remove current image</label>
+      <div class="mb-2">
+        <img
+          src="{{ url_for('recipes.recipe_image', recipe_id=recipe['id']) }}"
+          class="img-fluid rounded"
+          alt="current"
+        />
+      </div>
+      <div class="form-check">
+        <input
+          type="checkbox"
+          class="form-check-input"
+          name="remove_image"
+          id="remove_image"
+        />
+        <label class="form-check-label" for="remove_image"
+          >Remove current image</label
+        >
+      </div>
       {% else %}
-        <p class="muted">No current image.</p>
+      <p class="text-muted">No current image.</p>
       {% endif %}
-    </label>
+    </div>
 
-    <label>Replace with new image (optional)
-      <input type="file" name="image" id="image-input" accept="image/*" />
-      <div id="image-preview" class="image-preview"></div>
-    </label>
+    <div class="mb-3">
+      <label class="form-label">Replace with new image (optional)</label>
+      <input type="file" name="image" class="form-control" accept="image/*" />
+    </div>
 
-    <button type="submit" class="btn-primary">Save changes</button>
+    <button type="submit" class="btn btn-primary">
+      <i class="material-icons align-middle">save</i> Save changes
+    </button>
   </form>
+</div>
 {% endblock %}

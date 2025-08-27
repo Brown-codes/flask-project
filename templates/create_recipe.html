@@ -1,0 +1,87 @@
+{% extends "base.html" %} {% block title %}Create Recipe - RecipeShare{%
+endblock %} {% block content %}
+<div class="card shadow-sm p-4">
+  <h1 class="mb-4 d-flex align-items-center">
+    <span class="material-icons me-2">add_circle_outline</span>
+    Create a Recipe
+  </h1>
+
+  <form method="post" enctype="multipart/form-data" id="create-form">
+    <div class="mb-3">
+      <label class="form-label">Title <span class="text-danger">*</span></label>
+      <input
+        type="text"
+        name="title"
+        class="form-control"
+        required
+        maxlength="200"
+        placeholder="Recipe title"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Short description</label>
+      <textarea
+        name="description"
+        class="form-control"
+        rows="3"
+        placeholder="What is this dish about?"
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Ingredients (one per line)</label>
+      <textarea
+        name="ingredients"
+        class="form-control"
+        rows="5"
+        placeholder="e.g. 2 eggs&#10;1 cup flour"
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Instructions</label>
+      <textarea
+        name="instructions"
+        class="form-control"
+        rows="8"
+        placeholder="Step 1: ..."
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Image (optional)</label>
+      <input
+        type="file"
+        name="image"
+        id="image-input"
+        class="form-control"
+        accept="image/*"
+      />
+      <div id="image-preview" class="mt-2"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary d-flex align-items-center">
+      <span class="material-icons me-1">publish</span>
+      Publish Recipe
+    </button>
+  </form>
+</div>
+
+<script>
+  // Simple JS preview for uploaded image
+  const input = document.getElementById("image-input");
+  const preview = document.getElementById("image-preview");
+
+  input.addEventListener("change", () => {
+    preview.innerHTML = "";
+    const file = input.files[0];
+    if (!file) return;
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.className = "img-fluid mt-2";
+    img.style.maxHeight = "200px";
+    preview.appendChild(img);
+  });
+</script>
+{% endblock %}
