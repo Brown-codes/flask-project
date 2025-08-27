@@ -2,6 +2,7 @@ blinker==1.9.0
 click==8.2.1
 colorama==0.4.6
 Flask==3.1.2
+Flask-Login==0.6.3
 gunicorn==23.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
