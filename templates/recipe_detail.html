@@ -17,7 +17,7 @@ endblock %} {% block content %}
         <i class="material-icons align-middle" style="font-size: 16px"
           >schedule</i
         >
-        {{ recipe.created_at.split('T')[0] }}
+        {{ recipe.created_at.strftime('%Y-%m-%d') }}
       </div>
     </div>
 
