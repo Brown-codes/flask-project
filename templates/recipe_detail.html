@@ -132,7 +132,7 @@ endblock %} {% block content %}
         <i class="material-icons align-middle" style="font-size: 16px"
           >schedule</i
         >
-        {{ c['created_at'].split('T')[0] }}
+        {{ c['created_at'].strftime('%Y-%m-%d') }}
       </div>
       <div>{{ c['content'] }}</div>
     </div>
