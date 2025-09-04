@@ -45,7 +45,7 @@ block content %}
             <i class="material-icons align-middle me-1" style="font-size: 16px"
               >schedule</i
             >
-            <span>{{ r.created_at.split(' ')[0] }}</span>
+            <span>{{ r.created_at.strftime('%Y-%m-%d') }}</span>
           </div>
         </div>
       </a>
