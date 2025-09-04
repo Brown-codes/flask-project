@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}{{ owner.username }}'s profile -
+u{% extends "base.html" %} {% block title %}{{ owner.username }}'s profile -
 RecipeShare{% endblock %} {% block content %}
 <div class="container py-4">
   <div class="d-flex align-items-center mb-4">
@@ -6,7 +6,7 @@ RecipeShare{% endblock %} {% block content %}
     <div>
       <h1 class="h3 mb-0">{{ owner.username }}</h1>
       <small class="text-muted"
-        >Member since {{ owner.created_at.split('T')[0] }}</small
+        >Member since {{ owner.created_at.strftime('%Y-%m-%d') }}</small
       >
     </div>
   </div>
