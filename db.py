@@ -1,14 +1,24 @@
-# db.py
 import os
 from typing import Optional, List, Dict
-import sqlite3
+import psycopg2
+from psycopg2.extras import DictCursor
+from dotenv import load_dotenv
 
-DB_PATH = "recipes.db"
+# Database connection parameters
+load_dotenv()
+DB_HOST = os.getenv("DB_HOST", "postgresql-group10.alwaysdata.net")
+DB_NAME = os.getenv("DB_NAME", "group10_recipe_db")
+DB_USER = os.getenv("DB_USER", "group10")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "adamandevedeymad")
+DB_PORT = os.getenv("DB_PORT", "5432")
+
+# PostgreSQL connection string
+DB_CONNECTION_STRING = f"host={DB_HOST} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} port={DB_PORT}"
 
 
-def get_db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+def get_db() -> psycopg2.extensions.connection:
+    """Get a PostgreSQL database connection."""
+    conn = psycopg2.connect(DB_CONNECTION_STRING, cursor_factory=DictCursor)
     return conn
 
 
@@ -17,17 +27,14 @@ def init_db() -> None:
     conn = get_db()
     cur = conn.cursor()
 
-    # Enable foreign key constraints
-    cur.execute("PRAGMA foreign_keys = ON;")
-
     # Users table
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
         """
     )
@@ -36,15 +43,15 @@ def init_db() -> None:
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS recipes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT,
             ingredients TEXT,
             instructions TEXT NOT NULL,
-            image_data BLOB,
+            image_data BYTEA,
             image_mime TEXT,
             created_by INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
         );
         """
@@ -54,11 +61,11 @@ def init_db() -> None:
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             recipe_id INTEGER NOT NULL,
             user_id INTEGER NOT NULL,
             content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (recipe_id) REFERENCES recipes (id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         );
@@ -66,6 +73,7 @@ def init_db() -> None:
     )
 
     conn.commit()
+    cur.close()
     conn.close()
     print("✅ Database initialized!")
 
@@ -74,7 +82,9 @@ def get_user(user_id: str) -> Optional[Dict]:
     """Fetch a user by ID."""
     conn = get_db()
     cur = conn.cursor()
-    row = cur.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
     conn.close()
     return dict(row) if row else None
 
@@ -83,7 +93,9 @@ def find_user_by_username(username: str) -> Optional[Dict]:
     """Fetch a user by username."""
     conn = get_db()
     cur = conn.cursor()
-    row = cur.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+    row = cur.fetchone()
+    cur.close()
     conn.close()
     return dict(row) if row else None
 
@@ -93,10 +105,12 @@ def create_user(username: str, password: str) -> int:
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO users (username, password) VALUES (?, ?)", (username, password)
+        "INSERT INTO users (username, password) VALUES (%s, %s) RETURNING id",
+        (username, password)
     )
-    user_id: int = cur.lastrowid  # type: ignore
+    user_id: int = cur.fetchone()['id']
     conn.commit()
+    cur.close()
     conn.close()
     return user_id
 
@@ -127,11 +141,10 @@ def create_recipe_db(
     """
     conn = get_db()
     cur = conn.cursor()
-
     cur.execute(
         """
         INSERT INTO recipes (title, description, ingredients, instructions, created_by, image_data, image_mime)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
         """,
         (
             title,
@@ -143,9 +156,9 @@ def create_recipe_db(
             image_mime,
         ),
     )
-    recipe_id: int = cur.lastrowid  # type: ignore
-
+    recipe_id: int = cur.fetchone()['id']
     conn.commit()
+    cur.close()
     conn.close()
     return recipe_id
 
@@ -162,13 +175,14 @@ def get_recipes(user_id: Optional[int] = None) -> List[Dict]:
 
     if user_id is not None:
         cur.execute(
-            "SELECT * FROM recipes WHERE created_by = ? ORDER BY created_at DESC",
-            (user_id,),
+            "SELECT * FROM recipes WHERE created_by = %s ORDER BY created_at DESC",
+            (user_id,)
         )
     else:
         cur.execute("SELECT * FROM recipes ORDER BY created_at DESC")
 
     rows = cur.fetchall()
+    cur.close()
     conn.close()
     return [dict(row) for row in rows]
 
@@ -180,12 +194,17 @@ def get_recipe_by_id(recipe_id: int) -> Optional[Dict]:
     """
     conn = get_db()
     cur = conn.cursor()
-    row = cur.execute(
-        "SELECT r.*, u.username as author_name FROM recipes r "
-        "LEFT JOIN users u ON r.created_by = u.id "
-        "WHERE r.id = ?",
-        (recipe_id,),
-    ).fetchone()
+    cur.execute(
+        """
+        SELECT r.*, u.username as author_name
+        FROM recipes r
+        LEFT JOIN users u ON r.created_by = u.id
+        WHERE r.id = %s
+        """,
+        (recipe_id,)
+    )
+    row = cur.fetchone()
+    cur.close()
     conn.close()
     return dict(row) if row else None
 
@@ -196,12 +215,18 @@ def get_comments_for_recipe(recipe_id: int) -> List[Dict]:
     """
     conn = get_db()
     cur = conn.cursor()
-    rows = cur.execute(
-        "SELECT c.*, u.username AS author_name FROM comments c "
-        "LEFT JOIN users u ON c.user_id = u.id "
-        "WHERE c.recipe_id = ? ORDER BY c.id ASC",
-        (recipe_id,),
-    ).fetchall()
+    cur.execute(
+        """
+        SELECT c.*, u.username AS author_name
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.recipe_id = %s
+        ORDER BY c.id ASC
+        """,
+        (recipe_id,)
+    )
+    rows = cur.fetchall()
+    cur.close()
     conn.close()
     return [dict(row) for row in rows]
 
@@ -214,11 +239,15 @@ def create_comment_db(recipe_id: int, user_id: int, body: str) -> int:
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO comments (recipe_id, user_id, content) VALUES (?, ?, ?)",
-        (recipe_id, user_id, body),
+        """
+        INSERT INTO comments (recipe_id, user_id, content)
+        VALUES (%s, %s, %s) RETURNING id
+        """,
+        (recipe_id, user_id, body)
     )
-    comment_id: int = cur.lastrowid  # type: ignore
+    comment_id: int = cur.fetchone()['id']
     conn.commit()
+    cur.close()
     conn.close()
     return comment_id
 
@@ -240,8 +269,8 @@ def update_recipe(
         cur.execute(
             """
             UPDATE recipes
-            SET title = ?, description = ?, ingredients = ?, instructions = ?, image_data = ?, image_mime = ?
-            WHERE id = ?
+            SET title = %s, description = %s, ingredients = %s, instructions = %s, image_data = %s, image_mime = %s
+            WHERE id = %s
             """,
             (
                 title,
@@ -257,13 +286,14 @@ def update_recipe(
         cur.execute(
             """
             UPDATE recipes
-            SET title = ?, description = ?, ingredients = ?, instructions = ?
-            WHERE id = ?
+            SET title = %s, description = %s, ingredients = %s, instructions = %s
+            WHERE id = %s
             """,
             (title, description, ingredients, instructions, recipe_id),
         )
 
     conn.commit()
+    cur.close()
     conn.close()
 
 
@@ -271,8 +301,9 @@ def delete_recipe_by_id(recipe_id: int) -> None:
     """Delete a recipe and all its comments."""
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,))
+    cur.execute("DELETE FROM recipes WHERE id = %s", (recipe_id,))
     conn.commit()
+    cur.close()
     conn.close()
 
 
@@ -285,11 +316,12 @@ def get_recipes_by_user(user_id: int) -> List[Dict]:
         SELECT r.*, u.username AS author_name
         FROM recipes r
         LEFT JOIN users u ON r.created_by = u.id
-        WHERE r.created_by = ?
+        WHERE r.created_by = %s
         ORDER BY r.created_at DESC
         """,
-        (user_id,),
+        (user_id,)
     )
     rows = cur.fetchall()
+    cur.close()
     conn.close()
     return [dict(row) for row in rows]
